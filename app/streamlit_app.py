@@ -20,7 +20,8 @@ html, body, [class*="css"] {
 
 /* Header banner — solid dark background so the white title always has contrast */
 .header-banner {
-    background: linear-gradient(135deg, #0F2922 0%, #14352C 100%);
+    .stApp{
+    background:#F7FAF8; }
     margin: -1rem -1rem 24px -1rem;
     padding: 40px 24px 30px;
     border-radius: 0 0 20px 20px;
@@ -65,12 +66,12 @@ html, body, [class*="css"] {
     letter-spacing: 0.06em;
 }
 
-[data-testid="stFileUploader"] {
-    background: white;
-    border: 1px solid #E1E8E4;
-    border-radius: 16px;
-    padding: 22px;
-    box-shadow: 0 8px 30px rgba(15, 41, 34, 0.08);
+[data-testid="stFileUploader"]{
+    background:white;
+    border:2px dashed #2E7D32;
+    border-radius:20px;
+    padding:35px;
+    box-shadow:0 8px 30px rgba(15,41,34,.08);
 }
 
 .result-card {
@@ -126,23 +127,23 @@ html, body, [class*="css"] {
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown(
-    '''
-    <div class="header-banner">
-        <h1>🌱 AgroDetect</h1>
-        <p class="subtitle">Upload a crop leaf image and receive disease diagnosis, treatment recommendations, and plant health improvement advice.</p>
-    </div>
-    ''',
-    unsafe_allow_html=True
+st.title("🌱 AgroDetect")
+
+st.caption(
+    "Upload a crop leaf image and receive disease diagnosis, "
+    "treatment recommendations, and plant health improvement advice."
 )
 
-st.markdown("""
-<div class="stat-row">
-    <div class="stat"><div class="stat-num">15</div><div class="stat-label">Classes Trained</div></div>
-    <div class="stat"><div class="stat-num">MobileNetV2</div><div class="stat-label">Model</div></div>
-    <div class="stat"><div class="stat-num">CNN</div><div class="stat-label">Architecture</div></div>
-</div>
-""", unsafe_allow_html=True)
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.metric("Classes Trained", "15")
+
+with col2:
+    st.metric("Model", "MobileNetV2")
+
+with col3:
+    st.metric("Architecture", "CNN")
 
 @st.cache_resource
 def load_model():
@@ -358,6 +359,7 @@ disease_info = {
     }
 }
 
+st.markdown("## 📤 Upload Leaf Image")
 uploaded = st.file_uploader(
     "Upload a leaf image",
     type=["jpg", "png", "jpeg"]
@@ -365,6 +367,7 @@ uploaded = st.file_uploader(
 
 if uploaded:
 
+    st.markdown("## 🖼️ Leaf Preview")
     st.image(uploaded, use_container_width=True)
 
     file_bytes = np.asarray(
@@ -435,6 +438,7 @@ if uploaded:
         }
     )
 
+    st.markdown("## 🔍 Diagnosis")
     st.markdown(f"""
     <div class="result-card {css_class}">
         <div class="result-tag">
