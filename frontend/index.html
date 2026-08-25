@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroDetect — AI Crop Disease Detection</title>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header>
+  <div class="logo">🌱 AgroDetect</div>
+  <nav>
+    <a href="#home">Home</a>
+    <a href="#detector">Detector</a>
+    <a href="#recommendations">Treatment</a>
+    <a href="#improvement">Care Plan</a>
+  </nav>
+</header>
+
+<section class="hero" id="home">
+  <div class="hero-text">
+    <h1>AI Crop Disease Detection</h1>
+    <p>Upload a leaf image and receive an instant diagnosis, treatment recommendations, and a plant health improvement plan.</p>
+    <button id="heroUploadBtn">Upload Image</button>
+  </div>
+  <div class="hero-image">
+    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="100" cy="100" r="90" fill="#E4EFDF"/>
+      <path d="M100 165c-45 0-70-35-70-75 0-30 22-55 70-65 48 10 70 35 70 65 0 40-25 75-70 75Z" fill="#2e7d32"/>
+      <path d="M100 165V60" stroke="#1b5e20" stroke-width="4" stroke-linecap="round"/>
+      <path d="M100 90c-15-10-30-8-38 2M100 115c15-10 30-8 38 2" stroke="#1b5e20" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+  </div>
+</section>
+
+<section class="detector" id="detector">
+  <div class="upload-box">
+    <h2>Upload Leaf Image</h2>
+    <label class="file-drop" id="fileDrop" tabindex="0">
+      <input type="file" id="fileInput" accept="image/jpeg,image/png">
+      <span id="fileDropLabel">Click or drag a leaf photo here</span>
+      <img id="preview" style="display:none;">
+    </label>
+    <div class="upload-status" id="uploadStatus"></div>
+  </div>
+
+  <div class="result-box">
+    <h2>Detection Result</h2>
+    <div class="result-card" id="resultCard">
+      <p class="placeholder" id="resultPlaceholder">Upload a leaf image to see the diagnosis here.</p>
+      <div id="resultContent" style="display:none;">
+        <h3 id="diseaseName">—</h3>
+        <p id="confidenceText">Confidence: —</p>
+        <p id="severityText">Severity: —</p>
+        <div class="progress">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="recommendation" id="recommendations">
+  <h2>Treatment Recommendations</h2>
+  <ul id="recommendationList">
+    <li>Upload a leaf photo above to get recommendations specific to what's detected.</li>
+  </ul>
+</section>
+
+<section class="improvement" id="improvement">
+  <h2>Plant Health Improvement Plan</h2>
+  <div class="cards">
+    <div class="card">
+      <h3>🌱 Nutrition</h3>
+      <p>Add organic compost every 2 weeks to keep soil nutrient-rich.</p>
+    </div>
+    <div class="card">
+      <h3>💧 Watering</h3>
+      <p>Water early morning at the base of the plant, and avoid wetting the leaves.</p>
+    </div>
+    <div class="card">
+      <h3>☀️ Sunlight</h3>
+      <p>Ensure 6–8 hours of sunlight daily for strong, healthy growth.</p>
+    </div>
+    <div class="card">
+      <h3>🛡️ Prevention</h3>
+      <p>Check leaves weekly for early signs of spots, discoloration, or wilting.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Crop Disease Detection — Final Year Project</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
