@@ -5,7 +5,6 @@ import cv2
 
 st.set_page_config(page_title="Crop Disease Detection", page_icon="🔬", layout="centered")
 
-# ── Custom styling: clean, modern agri-tech look ──
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap');
@@ -14,116 +13,157 @@ html, body, [class*="css"] {
     font-family: 'Inter', sans-serif;
 }
 
+/* ── Dark Streamlit background ── */
 .stApp {
-    background: #F7FAF8;
+    background: #111816;
+    color: #E8F0EC;
 }
 
-/* Header banner — solid dark background so the white title always has contrast */
-.header-banner {
-    .stApp{
-    background:#F7FAF8; }
-    margin: -1rem -1rem 24px -1rem;
-    padding: 40px 24px 30px;
-    border-radius: 0 0 20px 20px;
+/* Main content */
+.block-container {
+    padding-top: 2rem;
+    padding-bottom: 3rem;
 }
 
-.header-banner h1 {
-    font-family: 'Manrope', sans-serif;
-    font-weight: 800;
+/* ── Main title ── */
+h1 {
+    font-family: 'Manrope', sans-serif !important;
+    font-weight: 800 !important;
     color: #FFFFFF !important;
     text-align: center;
-    font-size: 2.1rem !important;
+    font-size: 2.4rem !important;
     margin-bottom: 8px !important;
 }
 
-.header-banner .subtitle {
-    text-align: center;
-    color: #AFC8BE;
-    font-size: 0.98rem;
-    max-width: 480px;
-    margin: 0 auto;
-}
-
-.stat-row {
-    display: flex;
-    justify-content: center;
-    gap: 32px;
-    margin: 28px 0 30px;
-}
-.stat {
+/* Subtitle */
+.stCaption {
+    color: #AFC8BE !important;
     text-align: center;
 }
-.stat-num {
-    font-family: 'Manrope', sans-serif;
-    font-weight: 800;
-    font-size: 1.5rem;
-    color: #0F7A54;
-}
-.stat-label {
-    color: #7C8B84;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+
+/* ── Section headings ── */
+h2, h3 {
+    font-family: 'Manrope', sans-serif !important;
+    color: #FFFFFF !important;
 }
 
-[data-testid="stFileUploader"]{
-    background:white;
-    border:2px dashed #2E7D32;
-    border-radius:20px;
-    padding:35px;
-    box-shadow:0 8px 30px rgba(15,41,34,.08);
+/* ── File uploader ── */
+[data-testid="stFileUploader"] {
+    background: #1A2420;
+    border: 2px dashed #2E7D32;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
 }
 
-.result-card {
-    background: white;
+[data-testid="stFileUploader"] label {
+    color: #E8F0EC !important;
+}
+
+/* ── Image ── */
+[data-testid="stImage"] {
     border-radius: 16px;
-    padding: 26px;
+    overflow: hidden;
+}
+
+/* ── Result card ── */
+.result-card {
+    background: #1A2420;
+    border-radius: 18px;
+    padding: 28px;
     margin-top: 20px;
-    border: 1px solid #E1E8E4;
-    box-shadow: 0 8px 30px rgba(15, 41, 34, 0.08);
+    border: 1px solid #2B3934;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
     text-align: center;
 }
-.result-card.healthy { border-top: 4px solid #34D399; }
-.result-card.diseased { border-top: 4px solid #F0973B; }
 
+.result-card.healthy {
+    border-top: 4px solid #34D399;
+}
+
+.result-card.diseased {
+    border-top: 4px solid #F0973B;
+}
+
+/* Diagnosis Result */
 .result-tag {
-    display: inline-block;
+    display: block;
     font-family: 'Manrope', sans-serif;
     font-weight: 700;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #6B7A73;
-    margin-bottom: 8px;
+    color: #AFC8BE;
+    margin-bottom: 10px;
 }
 
+/* Disease name */
 .result-label {
     font-family: 'Manrope', sans-serif;
     font-weight: 800;
     font-size: 1.7rem;
-    margin-bottom: 10px;
+    margin-bottom: 14px;
 }
-.result-label.healthy { color: #0F7A54; }
-.result-label.diseased { color: #B85A16; }
 
+.result-label.healthy {
+    color: #34D399;
+}
+
+.result-label.diseased {
+    color: #F0973B;
+}
+
+/* Status */
+.result-status {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #D5E1DC;
+}
+
+/* Confidence */
 .result-confidence {
-    color: #6B7A73;
+    color: #AFC8BE;
     font-size: 0.95rem;
 }
 
+/* Severity */
+.result-severity {
+    margin-top: 8px;
+    font-weight: 600;
+    color: #D5E1DC;
+}
+
+/* Confidence bar */
 .conf-track {
-    background: #EEF3F0;
+    background: #2A3531;
     border-radius: 999px;
-    height: 8px;
-    margin-top: 12px;
+    height: 9px;
+    margin-top: 14px;
     overflow: hidden;
 }
+
 .conf-fill {
     height: 100%;
     border-radius: 999px;
 }
-.conf-fill.healthy { background: #34D399; }
-.conf-fill.diseased { background: #F0973B; }
+
+.conf-fill.healthy {
+    background: #34D399;
+}
+
+.conf-fill.diseased {
+    background: #F0973B;
+}
+
+/* ── Success / treatment boxes ── */
+.stAlert {
+    border-radius: 12px;
+}
+
+/* Text inside dark UI */
+p, label {
+    color: #D5E1DC;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -133,17 +173,6 @@ st.caption(
     "Upload a crop leaf image and receive disease diagnosis, "
     "treatment recommendations, and plant health improvement advice."
 )
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.metric("Classes Trained", "15")
-
-with col2:
-    st.metric("Model", "MobileNetV2")
-
-with col3:
-    st.metric("Architecture", "CNN")
 
 @st.cache_resource
 def load_model():
@@ -439,42 +468,40 @@ if uploaded:
     )
 
     st.markdown("## 🔍 Diagnosis")
-    st.markdown(f"""
-    <div class="result-card {css_class}">
-        <div class="result-tag">
-            Diagnosis Result
-        </div>
 
-        <div class="result-label {css_class}">
-            {display_name}
-        </div>
+    st.markdown(
+        f"""
+        <div class="result-card {css_class}">
+            <div class="result-tag">
+                Diagnosis Result
+            </div>
 
-        <div style="
-            font-weight:600;
-            margin-bottom:8px;
-            color:#6B7A73;">
-            Status: {status}
-        </div>
+            <div class="result-label {css_class}">
+                {display_name}
+            </div>
 
-        <div class="result-confidence">
-            Confidence: {pct:.1f}%
-        </div>
+            <div class="result-status">
+                Status: {status}
+            </div>
 
-        <div style="
-            margin-top:8px;
-            font-weight:600;
-            color:#6B7A73;">
-            Severity: {info['severity']}
-        </div>
+            <div class="result-confidence">
+                Confidence: {pct:.1f}%
+            </div>
 
-        <div class="conf-track">
-            <div
-                class="conf-fill {css_class}"
-                style="width:{pct}%;">
+            <div class="result-severity">
+                Severity: {info['severity']}
+            </div>
+
+            <div class="conf-track">
+                <div
+                    class="conf-fill {css_class}"
+                    style="width: {min(pct, 100):.2f}%;">
+                </div>
             </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """,
+        unsafe_allow_html=True
+    )
 
     st.markdown("## 💊 Treatment Recommendations")
 
@@ -486,6 +513,9 @@ if uploaded:
     col1, col2 = st.columns(2)
 
     for i, tip in enumerate(info["improvements"]):
-
-        with col1 if i % 2 == 0 else col2:
-            st.info(tip)
+        if i % 2 == 0:
+            with col1:
+                st.info(tip)
+        else:
+            with col2:
+                st.info(tip)
