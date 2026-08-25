@@ -119,3 +119,46 @@ function showResult(data) {
   const tips = recommendationsFor(data.disease);
   recommendationList.innerHTML = tips.map(t => `<li>${t}</li>`).join('');
 }
+
+function displayResult(data){
+
+    document.getElementById("diseaseName").innerText =
+        data.disease;
+
+    document.getElementById("confidence").innerText =
+        "Confidence: " + data.confidence + "%";
+
+    document.getElementById("severity").innerText =
+        "Severity: " + data.severity;
+
+    const treatmentList =
+        document.getElementById("treatmentList");
+
+    treatmentList.innerHTML = "";
+
+    data.treatment.forEach(item => {
+
+        const li = document.createElement("li");
+
+        li.textContent = item;
+
+        treatmentList.appendChild(li);
+
+    });
+
+    const improvementList =
+        document.getElementById("improvementList");
+
+    improvementList.innerHTML = "";
+
+    data.improvements.forEach(item => {
+
+        const li = document.createElement("li");
+
+        li.textContent = item;
+
+        improvementList.appendChild(li);
+
+    });
+
+}
