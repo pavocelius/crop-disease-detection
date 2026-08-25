@@ -341,10 +341,6 @@ if uploaded:
     with st.spinner("Analyzing leaf..."):
         result = model.predict(model_img, verbose=0)[0]
 
-        st.write("### Debug Predictions")
-        for label, score in zip(disease_labels, result):
-            st.write(f"{label}: {score * 100:.2f}%")
-
     top_index = int(np.argmax(result))
     predicted_class = disease_labels[top_index]
 
