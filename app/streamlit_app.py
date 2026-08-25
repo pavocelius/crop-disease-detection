@@ -342,36 +342,28 @@ if uploaded:
         result = model.predict(model_img, verbose=0)[0]
 
         st.write("### Debug Predictions")
+        for label, score in zip(disease_labels, result):
+            st.write(f"{label}: {score * 100:.2f}%")
 
-    for label, score in zip(disease_labels, result):
-        st.write(
-            f"{label}: {score * 100:.2f}%"
-        )
+    top_index = int(np.argmax(result))
+    predicted_class = disease_labels[top_index]
 
+    confidence = float(np.max(result))
+    top_confidence = confidence * 100
 
-top_index = int(np.argmax(result))
-predicted_class = disease_labels[top_index]
+    UNKNOWN_THRESHOLD = 0.75
+    if confidence < UNKNOWN_THRESHOLD:
+        predicted_class = "Unknown / Not Supported"
 
-confidence = float(np.max(result))
-top_confidence = confidence * 100
+    sorted_probs = np.sort(result)
+    top1 = sorted_probs[-1]
+    top2 = sorted_probs[-2]
+    margin = top1 - top2
 
-UNKNOWN_THRESHOLD = 0.75
-
-if confidence < UNKNOWN_THRESHOLD:
-    predicted_class = "Unknown / Not Supported"
-
-sorted_probs = np.sort(result)
-
-top1 = sorted_probs[-1]
-top2 = sorted_probs[-2]
-
-margin = top1 - top2
-
-MIN_CONFIDENCE = 0.80
-MIN_MARGIN = 0.20
-
-if top1 < MIN_CONFIDENCE or margin < MIN_MARGIN:
-    predicted_class = "Unknown / Not Supported"
+    MIN_CONFIDENCE = 0.80
+    MIN_MARGIN = 0.20
+    if top1 < MIN_CONFIDENCE or margin < MIN_MARGIN:
+        predicted_class = "Unknown / Not Supported"
 
     st.markdown("## 🔍 Diagnosis")
 
