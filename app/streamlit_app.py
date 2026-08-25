@@ -3,29 +3,48 @@ import tensorflow as tf
 import numpy as np
 import cv2
 
-st.set_page_config(page_title="Crop Disease Detection", page_icon="🔬", layout="centered")
+# ============================================================
+# PAGE CONFIGURATION
+# ============================================================
+
+st.set_page_config(
+    page_title="Crop Disease Detection",
+    page_icon="🔬",
+    layout="centered"
+)
+
+# ============================================================
+# CUSTOM CSS
+# ============================================================
 
 st.markdown("""
 <style>
+
+/* =========================================================
+   GLOBAL
+   ========================================================= */
+
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap');
 
-html, body, [class*="css"] {
+html, body {
     font-family: 'Inter', sans-serif;
 }
 
-/* ── Dark Streamlit background ── */
 .stApp {
-    background: #111816;
+    background-color: #111816;
     color: #E8F0EC;
 }
 
-/* Main content */
 .block-container {
     padding-top: 2rem;
     padding-bottom: 3rem;
 }
 
-/* ── Main title ── */
+
+/* =========================================================
+   TITLE
+   ========================================================= */
+
 h1 {
     font-family: 'Manrope', sans-serif !important;
     font-weight: 800 !important;
@@ -35,137 +54,88 @@ h1 {
     margin-bottom: 8px !important;
 }
 
-/* Subtitle */
-.stCaption {
+
+/* =========================================================
+   SUBTITLE
+   ========================================================= */
+
+[data-testid="stCaptionContainer"] {
     color: #AFC8BE !important;
     text-align: center;
 }
 
-/* ── Section headings ── */
-h2, h3 {
+
+/* =========================================================
+   SECTION HEADINGS
+   ========================================================= */
+
+h2 {
     font-family: 'Manrope', sans-serif !important;
     color: #FFFFFF !important;
+    font-weight: 800 !important;
 }
 
-/* ── File uploader ── */
+
+/* =========================================================
+   FILE UPLOADER
+   ========================================================= */
+
 [data-testid="stFileUploader"] {
-    background: #1A2420;
+    background-color: #1A2420;
     border: 2px dashed #2E7D32;
     border-radius: 20px;
     padding: 30px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
 }
 
 [data-testid="stFileUploader"] label {
     color: #E8F0EC !important;
 }
 
-/* ── Image ── */
+
+/* =========================================================
+   IMAGE
+   ========================================================= */
+
 [data-testid="stImage"] {
     border-radius: 16px;
     overflow: hidden;
 }
 
-/* ── Result card ── */
-.result-card {
-    background: #1A2420;
-    border-radius: 18px;
-    padding: 28px;
-    margin-top: 20px;
-    border: 1px solid #2B3934;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-    text-align: center;
-}
 
-.result-card.healthy {
-    border-top: 4px solid #34D399;
-}
+/* =========================================================
+   SUCCESS BOXES
+   ========================================================= */
 
-.result-card.diseased {
-    border-top: 4px solid #F0973B;
-}
-
-/* Diagnosis Result */
-.result-tag {
-    display: block;
-    font-family: 'Manrope', sans-serif;
-    font-weight: 700;
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #AFC8BE;
-    margin-bottom: 10px;
-}
-
-/* Disease name */
-.result-label {
-    font-family: 'Manrope', sans-serif;
-    font-weight: 800;
-    font-size: 1.7rem;
-    margin-bottom: 14px;
-}
-
-.result-label.healthy {
-    color: #34D399;
-}
-
-.result-label.diseased {
-    color: #F0973B;
-}
-
-/* Status */
-.result-status {
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #D5E1DC;
-}
-
-/* Confidence */
-.result-confidence {
-    color: #AFC8BE;
-    font-size: 0.95rem;
-}
-
-/* Severity */
-.result-severity {
-    margin-top: 8px;
-    font-weight: 600;
-    color: #D5E1DC;
-}
-
-/* Confidence bar */
-.conf-track {
-    background: #2A3531;
-    border-radius: 999px;
-    height: 9px;
-    margin-top: 14px;
-    overflow: hidden;
-}
-
-.conf-fill {
-    height: 100%;
-    border-radius: 999px;
-}
-
-.conf-fill.healthy {
-    background: #34D399;
-}
-
-.conf-fill.diseased {
-    background: #F0973B;
-}
-
-/* ── Success / treatment boxes ── */
-.stAlert {
+[data-testid="stAlert"] {
     border-radius: 12px;
 }
 
-/* Text inside dark UI */
+
+/* =========================================================
+   INFO BOXES
+   ========================================================= */
+
+[data-testid="stAlert"] p {
+    color: #E8F0EC !important;
+}
+
+
+/* =========================================================
+   GENERAL TEXT
+   ========================================================= */
+
 p, label {
     color: #D5E1DC;
 }
+
 </style>
 """, unsafe_allow_html=True)
+
+
+# ============================================================
+# TITLE
+# ============================================================
 
 st.title("🌱 AgroDetect")
 
@@ -174,15 +144,50 @@ st.caption(
     "treatment recommendations, and plant health improvement advice."
 )
 
+
+# ============================================================
+# LOAD MODEL
+# ============================================================
+
 @st.cache_resource
 def load_model():
-    return tf.keras.models.load_model("models/crop_disease_model.keras")
+    return tf.keras.models.load_model(
+        "models/crop_disease_model.keras"
+    )
+
 
 model = load_model()
 
-# Full class list needed internally to map prediction index to a label
-disease_labels = ['Pepper__bell___Bacterial_spot', 'Pepper__bell___healthy', 'Potato___Early_blight', 'Potato___Late_blight', 'Potato___healthy', 'Tomato_Bacterial_spot', 'Tomato_Early_blight', 'Tomato_Late_blight', 'Tomato_Leaf_Mold', 'Tomato_Septoria_leaf_spot', 'Tomato_Spider_mites_Two_spotted_spider_mite', 'Tomato__Target_Spot', 'Tomato__Tomato_YellowLeaf__Curl_Virus', 'Tomato__Tomato_mosaic_virus', 'Tomato_healthy']
+
+# ============================================================
+# DISEASE LABELS
+# ============================================================
+
+disease_labels = [
+    'Pepper__bell___Bacterial_spot',
+    'Pepper__bell___healthy',
+    'Potato___Early_blight',
+    'Potato___Late_blight',
+    'Potato___healthy',
+    'Tomato_Bacterial_spot',
+    'Tomato_Early_blight',
+    'Tomato_Late_blight',
+    'Tomato_Leaf_Mold',
+    'Tomato_Septoria_leaf_spot',
+    'Tomato_Spider_mites_Two_spotted_spider_mite',
+    'Tomato__Target_Spot',
+    'Tomato__Tomato_YellowLeaf__Curl_Virus',
+    'Tomato__Tomato_mosaic_virus',
+    'Tomato_healthy'
+]
+
+
+# ============================================================
+# DISEASE INFORMATION
+# ============================================================
+
 disease_info = {
+
     "Pepper__bell___Bacterial_spot": {
         "severity": "Moderate",
         "treatment": [
@@ -388,16 +393,40 @@ disease_info = {
     }
 }
 
+
+# ============================================================
+# IMAGE UPLOAD
+# ============================================================
+
 st.markdown("## 📤 Upload Leaf Image")
+
 uploaded = st.file_uploader(
     "Upload a leaf image",
     type=["jpg", "png", "jpeg"]
 )
 
+
+# ============================================================
+# IMAGE PROCESSING + PREDICTION
+# ============================================================
+
 if uploaded:
 
+    # --------------------------------------------------------
+    # IMAGE PREVIEW
+    # --------------------------------------------------------
+
     st.markdown("## 🖼️ Leaf Preview")
-    st.image(uploaded, use_container_width=True)
+
+    st.image(
+        uploaded,
+        use_container_width=True
+    )
+
+
+    # --------------------------------------------------------
+    # READ IMAGE
+    # --------------------------------------------------------
 
     file_bytes = np.asarray(
         bytearray(uploaded.read()),
@@ -424,16 +453,41 @@ if uploaded:
         axis=0
     )
 
-    with st.spinner("Analyzing leaf..."):
-        result = model.predict(img, verbose=0)[0]
 
-    pred_idx = int(np.argmax(result))
+    # --------------------------------------------------------
+    # MODEL PREDICTION
+    # --------------------------------------------------------
+
+    with st.spinner("Analyzing leaf..."):
+
+        result = model.predict(
+            img,
+            verbose=0
+        )[0]
+
+
+    # --------------------------------------------------------
+    # GET PREDICTION
+    # --------------------------------------------------------
+
+    pred_idx = int(
+        np.argmax(result)
+    )
 
     predicted_class = disease_labels[pred_idx]
 
-    pct = float(np.max(result)) * 100
+    pct = float(
+        np.max(result)
+    ) * 100
 
-    is_healthy = "healthy" in predicted_class.lower()
+
+    # --------------------------------------------------------
+    # HEALTH STATUS
+    # --------------------------------------------------------
+
+    is_healthy = (
+        "healthy" in predicted_class.lower()
+    )
 
     status = (
         "Healthy"
@@ -441,11 +495,10 @@ if uploaded:
         else "Diseased"
     )
 
-    css_class = (
-        "healthy"
-        if is_healthy
-        else "diseased"
-    )
+
+    # --------------------------------------------------------
+    # DISPLAY NAME
+    # --------------------------------------------------------
 
     display_name = (
         predicted_class
@@ -453,6 +506,11 @@ if uploaded:
         .replace("__", " ")
         .replace("_", " ")
     )
+
+
+    # --------------------------------------------------------
+    # DISEASE INFORMATION
+    # --------------------------------------------------------
 
     info = disease_info.get(
         predicted_class,
@@ -467,112 +525,76 @@ if uploaded:
         }
     )
 
+
+    # ========================================================
+    # DIAGNOSIS
+    # ========================================================
+
     st.markdown("## 🔍 Diagnosis")
 
-    # Diagnosis result card
     if is_healthy:
-        border_color = "#34D399"
-        label_color = "#34D399"
+        st.success(
+            f"🌿 **Diagnosis Result: {display_name}**"
+        )
     else:
-        border_color = "#F0973B"
-        label_color = "#F0973B"
+        st.warning(
+            f"🦠 **Diagnosis Result: {display_name}**"
+        )
 
-    st.markdown(
-        f"""
-        <style>
-        .diagnosis-box {{
-            background: #1A2420;
-            border: 1px solid #2B3934;
-            border-top: 4px solid {border_color};
-            border-radius: 18px;
-            padding: 28px;
-            text-align: center;
-            margin-top: 10px;
-            margin-bottom: 25px;
-        }}
-
-        .diagnosis-title {{
-            color: #AFC8BE;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-        }}
-
-        .diagnosis-name {{
-            color: {label_color};
-            font-size: 26px;
-            font-weight: 800;
-            margin-bottom: 14px;
-        }}
-
-        .diagnosis-info {{
-            color: #D5E1DC;
-            font-size: 15px;
-            margin: 7px 0;
-        }}
-
-        .confidence-bar {{
-            background: #2A3531;
-            height: 9px;
-            border-radius: 10px;
-            margin-top: 15px;
-            overflow: hidden;
-        }}
-
-        .confidence-fill {{
-            background: {label_color};
-            height: 100%;
-            width: {min(pct, 100):.2f}%;
-            border-radius: 10px;
-        }}
-        </style>
-
-        <div class="diagnosis-box">
-
-            <div class="diagnosis-title">
-                Diagnosis Result
-            </div>
-
-            <div class="diagnosis-name">
-                {display_name}
-            </div>
-
-            <div class="diagnosis-info">
-                <b>Status:</b> {status}
-            </div>
-
-            <div class="diagnosis-info">
-                <b>Confidence:</b> {pct:.1f}%
-            </div>
-
-            <div class="diagnosis-info">
-                <b>Severity:</b> {info['severity']}
-            </div>
-
-            <div class="confidence-bar">
-                <div class="confidence-fill"></div>
-            </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+    # Status
+    st.write(
+        f"**Status:** {status}"
     )
+
+    # Confidence
+    st.write(
+        f"**Confidence:** {pct:.1f}%"
+    )
+
+    # Severity
+    st.write(
+        f"**Severity:** {info['severity']}"
+    )
+
+    # Confidence progress bar
+    st.progress(
+        min(pct / 100, 1.0)
+    )
+
+
+    # ========================================================
+    # TREATMENT
+    # ========================================================
 
     st.markdown("## 💊 Treatment Recommendations")
 
     for treatment in info["treatment"]:
-        st.success(treatment)
 
-    st.markdown("## 🌱 Plant Health Improvement Plan")
+        st.success(
+            treatment
+        )
+
+
+    # ========================================================
+    # PLANT HEALTH IMPROVEMENT
+    # ========================================================
+
+    st.markdown(
+        "## 🌱 Plant Health Improvement Plan"
+    )
 
     col1, col2 = st.columns(2)
 
-    for i, tip in enumerate(info["improvements"]):
+    for i, tip in enumerate(
+        info["improvements"]
+    ):
+
         if i % 2 == 0:
+
             with col1:
                 st.info(tip)
+
         else:
+
             with col2:
                 st.info(tip)
