@@ -469,35 +469,92 @@ if uploaded:
 
     st.markdown("## 🔍 Diagnosis")
 
+    # Diagnosis result card
+    if is_healthy:
+        border_color = "#34D399"
+        label_color = "#34D399"
+    else:
+        border_color = "#F0973B"
+        label_color = "#F0973B"
+
     st.markdown(
         f"""
-        <div class="result-card {css_class}">
-            <div class="result-tag">
+        <style>
+        .diagnosis-box {{
+            background: #1A2420;
+            border: 1px solid #2B3934;
+            border-top: 4px solid {border_color};
+            border-radius: 18px;
+            padding: 28px;
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 25px;
+        }}
+
+        .diagnosis-title {{
+            color: #AFC8BE;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }}
+
+        .diagnosis-name {{
+            color: {label_color};
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 14px;
+        }}
+
+        .diagnosis-info {{
+            color: #D5E1DC;
+            font-size: 15px;
+            margin: 7px 0;
+        }}
+
+        .confidence-bar {{
+            background: #2A3531;
+            height: 9px;
+            border-radius: 10px;
+            margin-top: 15px;
+            overflow: hidden;
+        }}
+
+        .confidence-fill {{
+            background: {label_color};
+            height: 100%;
+            width: {min(pct, 100):.2f}%;
+            border-radius: 10px;
+        }}
+        </style>
+
+        <div class="diagnosis-box">
+
+            <div class="diagnosis-title">
                 Diagnosis Result
             </div>
 
-            <div class="result-label {css_class}">
+            <div class="diagnosis-name">
                 {display_name}
             </div>
 
-            <div class="result-status">
-                Status: {status}
+            <div class="diagnosis-info">
+                <b>Status:</b> {status}
             </div>
 
-            <div class="result-confidence">
-                Confidence: {pct:.1f}%
+            <div class="diagnosis-info">
+                <b>Confidence:</b> {pct:.1f}%
             </div>
 
-            <div class="result-severity">
-                Severity: {info['severity']}
+            <div class="diagnosis-info">
+                <b>Severity:</b> {info['severity']}
             </div>
 
-            <div class="conf-track">
-                <div
-                    class="conf-fill {css_class}"
-                    style="width: {min(pct, 100):.2f}%;">
-                </div>
+            <div class="confidence-bar">
+                <div class="confidence-fill"></div>
             </div>
+
         </div>
         """,
         unsafe_allow_html=True
