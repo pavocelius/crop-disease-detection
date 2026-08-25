@@ -343,10 +343,10 @@ if uploaded:
 
         st.write("### Debug Predictions")
 
-for label, score in zip(disease_labels, result):
-    st.write(
-        f"{label}: {score * 100:.2f}%"
-    )
+    for label, score in zip(disease_labels, result):
+        st.write(
+            f"{label}: {score * 100:.2f}%"
+        )
 
 
 top_index = int(np.argmax(result))
