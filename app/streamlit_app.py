@@ -194,10 +194,12 @@ def load_model():
 model = load_model()
 
 # ============================================================
-# DISEASE LABELS
+# DISEASE LABELS — 16 classes, 'Other' included (index 0)
+# Must match the order printed by evaluate.py / train.py exactly.
 # ============================================================
 
 disease_labels = [
+    'Other',
     'Pepper__bell___Bacterial_spot', 'Pepper__bell___healthy',
     'Potato___Early_blight', 'Potato___Late_blight', 'Potato___healthy',
     'Tomato_Bacterial_spot', 'Tomato_Early_blight', 'Tomato_Late_blight',
@@ -338,13 +340,6 @@ if uploaded:
     # ── Convert to RGB for the model ──
     rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-    # ── Simple leaf-likeness check (green-pixel ratio in HSV) ──
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    lower_green = np.array([25, 30, 30])
-    upper_green = np.array([95, 255, 255])
-    green_mask = cv2.inRange(hsv, lower_green, upper_green)
-    green_ratio = np.count_nonzero(green_mask) / green_mask.size
-
     # ── Model input ──
     model_img = cv2.resize(rgb_img, (224, 224)).astype("float32")
     model_img = np.expand_dims(model_img, axis=0)
@@ -352,51 +347,25 @@ if uploaded:
     with st.spinner("Analyzing leaf..."):
         result = model.predict(model_img, verbose=0)[0]
 
-    # ── Top-2 predictions ──
-    sorted_indices = np.argsort(result)[::-1]
-    top_index = int(sorted_indices[0])
-    second_index = int(sorted_indices[1])
-
+    top_index = int(np.argmax(result))
     predicted_class = disease_labels[top_index]
     top_confidence = float(result[top_index]) * 100
-    second_confidence = float(result[second_index]) * 100
-    prediction_margin = top_confidence - second_confidence
-
-    # ── Out-of-dataset protection thresholds ──
-    MIN_CONFIDENCE = 70.0   # top prediction must be at least this sure
-    MIN_MARGIN = 10.0       # top prediction must clearly beat the runner-up
-    MIN_GREEN_RATIO = 0.05  # image must contain a plausible amount of leaf-green
-
-    confidence_ok = top_confidence >= MIN_CONFIDENCE
-    margin_ok = prediction_margin >= MIN_MARGIN
-    leaf_like = green_ratio >= MIN_GREEN_RATIO
-    prediction_valid = confidence_ok and margin_ok and leaf_like
 
     st.markdown("## 🔍 Diagnosis")
 
-    # ── Unsupported / low-confidence result ──
-    if not prediction_valid:
-        st.markdown("""
+    # ── Model itself judged this "Other" — not a supported leaf/condition ──
+    if predicted_class == "Other":
+        st.markdown(f"""
         <div class="unknown-box">
             <div class="unknown-title">⚠️ Unknown / Not Supported</div>
             <div class="unknown-text">
-                The image could not be confidently identified as one of the supported crop conditions.
+                The model identified this image as outside the supported crop conditions
+                (confidence: {top_confidence:.1f}%).
                 <br><br>
                 Please upload a clear image of a <b>tomato, potato, or pepper leaf</b> from a supported condition.
             </div>
         </div>
         """, unsafe_allow_html=True)
-
-        with st.expander("Why was this image rejected?"):
-            st.write(f"Model confidence: {top_confidence:.1f}%")
-            st.write(f"Difference from second prediction: {prediction_margin:.1f}%")
-            st.write(f"Green-area ratio: {green_ratio * 100:.1f}%")
-            if not confidence_ok:
-                st.write("❌ Model confidence was too low.")
-            if not margin_ok:
-                st.write("❌ The model was not sufficiently certain between its top predictions.")
-            if not leaf_like:
-                st.write("❌ The image does not appear sufficiently leaf-like based on its color characteristics.")
 
         st.info("💡 Supported crops: Tomato, Potato, and Pepper.")
 
@@ -426,7 +395,6 @@ if uploaded:
         </div>
         """, unsafe_allow_html=True)
 
-        # Symptoms — helps cross-check the result, especially for photos the model wasn't trained on
         st.markdown(f"""
         <div class="symptom-box">
             <span class="symptom-label">Typical Symptoms</span>
