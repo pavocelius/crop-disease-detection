@@ -18,36 +18,27 @@ html, body, [class*="css"] {
     background: #F7FAF8;
 }
 
-/* Header banner — solid dark background so the white title always has contrast */
-.header-banner {
-    background: linear-gradient(135deg, #0F2922 0%, #14352C 100%);
-    margin: -1rem -1rem 24px -1rem;
-    padding: 40px 24px 30px;
-    border-radius: 0 0 20px 20px;
-}
-
-.header-banner h1 {
+h1 {
     font-family: 'Manrope', sans-serif;
     font-weight: 800;
-    color: #FFFFFF !important;
+    color: #0F2922;
     text-align: center;
-    font-size: 2.1rem !important;
-    margin-bottom: 8px !important;
+    font-size: 2.3rem !important;
+    margin-bottom: 6px !important;
 }
 
-.header-banner .subtitle {
+.subtitle {
     text-align: center;
-    color: #AFC8BE;
-    font-size: 0.98rem;
-    max-width: 480px;
-    margin: 0 auto;
+    color: #64748B;
+    font-size: 1rem;
+    margin-bottom: 28px;
 }
 
 .stat-row {
     display: flex;
     justify-content: center;
     gap: 32px;
-    margin: 28px 0 30px;
+    margin-bottom: 30px;
 }
 .stat {
     text-align: center;
@@ -56,10 +47,10 @@ html, body, [class*="css"] {
     font-family: 'Manrope', sans-serif;
     font-weight: 800;
     font-size: 1.5rem;
-    color: #0F7A54;
+    color: #34D399;
 }
 .stat-label {
-    color: #7C8B84;
+    color: #A9C4BA;
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -127,11 +118,16 @@ html, body, [class*="css"] {
 """, unsafe_allow_html=True)
 
 st.markdown(
+    "<h1>🌱 AgroDetect</h1>",
+    unsafe_allow_html=True
+)
+
+st.markdown(
     '''
-    <div class="header-banner">
-        <h1>🌱 AgroDetect</h1>
-        <p class="subtitle">Upload a crop leaf image and receive disease diagnosis, treatment recommendations, and plant health improvement advice.</p>
-    </div>
+    <p class="subtitle">
+    Upload a crop leaf image and receive disease diagnosis,
+    treatment recommendations, and plant health improvement advice.
+    </p>
     ''',
     unsafe_allow_html=True
 )
