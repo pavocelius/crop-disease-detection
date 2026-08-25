@@ -335,7 +335,10 @@ if uploaded:
     rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     # ── Model input ──
+    from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+
     model_img = cv2.resize(rgb_img, (224, 224)).astype("float32")
+    model_img = preprocess_input(model_img)
     model_img = np.expand_dims(model_img, axis=0)
 
     with st.spinner("Analyzing leaf..."):

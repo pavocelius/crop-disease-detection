@@ -1,6 +1,7 @@
 import tensorflow as tf
 import json
 from keras.applications import MobileNetV2
+from keras.applications.mobilenet_v2 import preprocess_input
 from keras import layers, models
 
 IMG_SIZE = (224, 224)
@@ -16,8 +17,6 @@ val_ds = tf.keras.utils.image_dataset_from_directory(
 )
 
 class_names = train_ds.class_names
-with open("models/class_names.json", "w") as f:
-    json.dump(class_names, f)
 
 print("\n===== CLASS ORDER USED FOR TRAINING =====")
 for i, cls in enumerate(class_names):
@@ -27,12 +26,24 @@ print("=========================================\n")
 with open("models/class_names.json", "w") as f:
     json.dump(class_names, f)
 
+# ── Preprocessing: match MobileNetV2's expected input scale (-1 to 1) ──
+# Do this as part of tf.data pipeline (faster than an in-model Lambda,
+# and keeps augmentation/preprocessing outside the frozen backbone).
+def preprocess(image, label):
+    image = preprocess_input(image)
+    return image, label
+
+train_ds = train_ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
+val_ds = val_ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
+
+train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
+val_ds = val_ds.prefetch(tf.data.AUTOTUNE)
+
 # Base model (pretrained on ImageNet, frozen)
 base_model = MobileNetV2(input_shape=IMG_SIZE + (3,), include_top=False, weights="imagenet")
 base_model.trainable = False
 
 model = models.Sequential([
-    layers.Rescaling(1./255),
     base_model,
     layers.GlobalAveragePooling2D(),
     layers.Dense(128, activation="relu"),
