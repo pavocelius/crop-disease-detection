@@ -1,4 +1,5 @@
 import tensorflow as tf
+import json
 from keras.applications import MobileNetV2
 from keras import layers, models
 
@@ -9,11 +10,22 @@ BATCH_SIZE = 32
 train_ds = tf.keras.utils.image_dataset_from_directory(
     "data/processed/train", image_size=IMG_SIZE, batch_size=BATCH_SIZE
 )
+
 val_ds = tf.keras.utils.image_dataset_from_directory(
     "data/processed/val", image_size=IMG_SIZE, batch_size=BATCH_SIZE
 )
+
 class_names = train_ds.class_names
-print("Classes:", class_names)
+with open("models/class_names.json", "w") as f:
+    json.dump(class_names, f)
+
+print("\n===== CLASS ORDER USED FOR TRAINING =====")
+for i, cls in enumerate(class_names):
+    print(f"{i}: {cls}")
+print("=========================================\n")
+
+with open("models/class_names.json", "w") as f:
+    json.dump(class_names, f)
 
 # Base model (pretrained on ImageNet, frozen)
 base_model = MobileNetV2(input_shape=IMG_SIZE + (3,), include_top=False, weights="imagenet")

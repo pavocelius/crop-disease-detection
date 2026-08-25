@@ -4,6 +4,7 @@ import numpy as np
 import cv2
 import os
 import tensorflow as tf
+import json
 
 app = FastAPI()
 
@@ -20,23 +21,17 @@ MODEL_PATH = os.path.join(PROJECT_ROOT, "models", "crop_disease_model.keras")
 
 model = tf.keras.models.load_model(MODEL_PATH)
 
-disease_labels = [
-    'Pepper__bell___Bacterial_spot',
-    'Pepper__bell___healthy',
-    'Potato___Early_blight',
-    'Potato___Late_blight',
-    'Potato___healthy',
-    'Tomato_Bacterial_spot',
-    'Tomato_Early_blight',
-    'Tomato_Late_blight',
-    'Tomato_Leaf_Mold',
-    'Tomato_Septoria_leaf_spot',
-    'Tomato_Spider_mites_Two_spotted_spider_mite',
-    'Tomato__Target_Spot',
-    'Tomato__Tomato_YellowLeaf__Curl_Virus',
-    'Tomato__Tomato_mosaic_virus',
-    'Tomato_healthy'
-]
+import json
+
+with open(
+    os.path.join(PROJECT_ROOT, "models", "class_names.json"),
+    "r"
+) as f:
+    disease_labels = json.load(f)
+
+print("Loaded disease labels:")
+for i, label in enumerate(disease_labels):
+    print(f"{i}: {label}")
 
 MIN_CONFIDENCE = 70.0   # top prediction must be at least this confident
 MIN_MARGIN = 10.0       # top prediction must beat the runner-up by at least this much

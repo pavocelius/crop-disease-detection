@@ -198,16 +198,10 @@ model = load_model()
 # Must match the order printed by evaluate.py / train.py exactly.
 # ============================================================
 
-disease_labels = [
-    'Other',
-    'Pepper__bell___Bacterial_spot', 'Pepper__bell___healthy',
-    'Potato___Early_blight', 'Potato___Late_blight', 'Potato___healthy',
-    'Tomato_Bacterial_spot', 'Tomato_Early_blight', 'Tomato_Late_blight',
-    'Tomato_Leaf_Mold', 'Tomato_Septoria_leaf_spot',
-    'Tomato_Spider_mites_Two_spotted_spider_mite', 'Tomato__Target_Spot',
-    'Tomato__Tomato_YellowLeaf__Curl_Virus', 'Tomato__Tomato_mosaic_virus',
-    'Tomato_healthy'
-]
+import json
+
+with open("models/class_names.json", "r") as f:
+    disease_labels = json.load(f)
 
 # ============================================================
 # DISEASE INFORMATION — severity, symptoms, treatment, improvements
@@ -321,7 +315,7 @@ uploaded = st.file_uploader("Upload a leaf image", type=["jpg", "png", "jpeg"])
 
 if uploaded:
     st.markdown("## 🖼️ Leaf Preview")
-    st.image(uploaded, use_container_width=True)
+    st.image(uploaded, width="stretch")
 
     # ── Read image ──
     file_bytes = np.asarray(bytearray(uploaded.getvalue()), dtype=np.uint8)
@@ -347,14 +341,42 @@ if uploaded:
     with st.spinner("Analyzing leaf..."):
         result = model.predict(model_img, verbose=0)[0]
 
-    top_index = int(np.argmax(result))
-    predicted_class = disease_labels[top_index]
-    top_confidence = float(result[top_index]) * 100
+        st.write("### Debug Predictions")
+
+for label, score in zip(disease_labels, result):
+    st.write(
+        f"{label}: {score * 100:.2f}%"
+    )
+
+
+top_index = int(np.argmax(result))
+predicted_class = disease_labels[top_index]
+
+confidence = float(np.max(result))
+top_confidence = confidence * 100
+
+UNKNOWN_THRESHOLD = 0.75
+
+if confidence < UNKNOWN_THRESHOLD:
+    predicted_class = "Unknown / Not Supported"
+
+sorted_probs = np.sort(result)
+
+top1 = sorted_probs[-1]
+top2 = sorted_probs[-2]
+
+margin = top1 - top2
+
+MIN_CONFIDENCE = 0.80
+MIN_MARGIN = 0.20
+
+if top1 < MIN_CONFIDENCE or margin < MIN_MARGIN:
+    predicted_class = "Unknown / Not Supported"
 
     st.markdown("## 🔍 Diagnosis")
 
     # ── Model itself judged this "Other" — not a supported leaf/condition ──
-    if predicted_class == "Other":
+    if predicted_class in ["Other", "Unknown / Not Supported"]:
         st.markdown(f"""
         <div class="unknown-box">
             <div class="unknown-title">⚠️ Unknown / Not Supported</div>
