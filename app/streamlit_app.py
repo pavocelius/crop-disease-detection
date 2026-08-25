@@ -177,7 +177,7 @@ p, label {
 # TITLE
 # ============================================================
 
-st.title("🌱 AgroDetect")
+st.title("🌱 Crop Disease Detection - Final Year Project")
 st.caption(
     "Upload a crop leaf image and receive disease detection, "
     "expected symptoms, and treatment recommendations."
