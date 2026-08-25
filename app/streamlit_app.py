@@ -177,7 +177,7 @@ p, label {
 # TITLE
 # ============================================================
 
-st.title("🌱 Crop Disease Detection System- Final Year Project")
+st.title("🌱 Crop Disease Detection System - Final Year Project")
 st.caption(
     "Upload a crop leaf image and receive disease detection, "
     "expected symptoms, and treatment recommendations."
@@ -324,6 +324,12 @@ if uploaded:
     if img is None:
         st.error("Unable to read this image. Please upload a valid JPG or PNG file.")
         st.stop()
+
+    rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    height, width = img.shape[:2]
+    st.write(f"Debug — decoded image size: {width}x{height}")  # temporary
+    if height < 100 or width < 100:
+        st.warning("⚠️ The image is too small...")
 
     # ── Basic size check ──
     height, width = img.shape[:2]
