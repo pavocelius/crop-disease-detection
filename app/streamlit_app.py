@@ -13,16 +13,13 @@ st.set_page_config(
     layout="centered"
 )
 
+
 # ============================================================
 # CUSTOM CSS
 # ============================================================
 
 st.markdown("""
 <style>
-
-/* =========================================================
-   GLOBAL
-   ========================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap');
 
@@ -104,20 +101,11 @@ h2 {
 
 
 /* =========================================================
-   SUCCESS BOXES
+   ALERTS
    ========================================================= */
 
 [data-testid="stAlert"] {
     border-radius: 12px;
-}
-
-
-/* =========================================================
-   INFO BOXES
-   ========================================================= */
-
-[data-testid="stAlert"] p {
-    color: #E8F0EC !important;
 }
 
 
@@ -127,6 +115,84 @@ h2 {
 
 p, label {
     color: #D5E1DC;
+}
+
+
+/* =========================================================
+   UNKNOWN RESULT
+   ========================================================= */
+
+.unknown-box {
+    background: #1A2420;
+    border: 1px solid #554B2A;
+    border-top: 4px solid #EAB308;
+    border-radius: 18px;
+    padding: 28px;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 25px;
+}
+
+.unknown-title {
+    color: #EAB308;
+    font-size: 25px;
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+
+.unknown-text {
+    color: #D5E1DC;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   DIAGNOSIS RESULT
+   ========================================================= */
+
+.diagnosis-box {
+    background: #1A2420;
+    border: 1px solid #2B3934;
+    border-radius: 18px;
+    padding: 28px;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 25px;
+}
+
+.diagnosis-title {
+    color: #AFC8BE;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.diagnosis-name {
+    font-size: 26px;
+    font-weight: 800;
+    margin-bottom: 14px;
+}
+
+.diagnosis-info {
+    color: #D5E1DC;
+    font-size: 15px;
+    margin: 7px 0;
+}
+
+.confidence-bar {
+    background: #2A3531;
+    height: 9px;
+    border-radius: 10px;
+    margin-top: 15px;
+    overflow: hidden;
+}
+
+.confidence-fill {
+    height: 100%;
+    border-radius: 10px;
 }
 
 </style>
@@ -140,7 +206,7 @@ p, label {
 st.title("🌱 AgroDetect")
 
 st.caption(
-    "Upload a crop leaf image and receive disease diagnosis, "
+    "Upload a crop leaf image and receive disease detection, "
     "treatment recommendations, and plant health improvement advice."
 )
 
@@ -151,6 +217,7 @@ st.caption(
 
 @st.cache_resource
 def load_model():
+
     return tf.keras.models.load_model(
         "models/crop_disease_model.keras"
     )
@@ -395,7 +462,7 @@ disease_info = {
 
 
 # ============================================================
-# IMAGE UPLOAD
+# UPLOAD IMAGE
 # ============================================================
 
 st.markdown("## 📤 Upload Leaf Image")
@@ -407,14 +474,10 @@ uploaded = st.file_uploader(
 
 
 # ============================================================
-# IMAGE PROCESSING + PREDICTION
+# IMAGE PROCESSING
 # ============================================================
 
 if uploaded:
-
-    # --------------------------------------------------------
-    # IMAGE PREVIEW
-    # --------------------------------------------------------
 
     st.markdown("## 🖼️ Leaf Preview")
 
@@ -423,13 +486,12 @@ if uploaded:
         use_container_width=True
     )
 
-
     # --------------------------------------------------------
     # READ IMAGE
     # --------------------------------------------------------
 
     file_bytes = np.asarray(
-        bytearray(uploaded.read()),
+        bytearray(uploaded.getvalue()),
         dtype=np.uint8
     )
 
@@ -438,163 +500,414 @@ if uploaded:
         cv2.IMREAD_COLOR
     )
 
-    img = cv2.cvtColor(
+    if img is None:
+
+        st.error(
+            "Unable to read this image. Please upload a valid JPG or PNG file."
+        )
+
+        st.stop()
+
+
+    # --------------------------------------------------------
+    # BASIC IMAGE VALIDATION
+    # --------------------------------------------------------
+
+    height, width = img.shape[:2]
+
+    # Very tiny images are unlikely to provide useful information
+    if height < 100 or width < 100:
+
+        st.warning(
+            "⚠️ The image is too small. "
+            "Please upload a clearer crop leaf image."
+        )
+
+        st.stop()
+
+
+    # --------------------------------------------------------
+    # CONVERT TO RGB
+    # --------------------------------------------------------
+
+    rgb_img = cv2.cvtColor(
         img,
         cv2.COLOR_BGR2RGB
     )
 
-    img = cv2.resize(
+
+    # ========================================================
+    # SIMPLE LEAF IMAGE CHECK
+    # ========================================================
+
+    # Convert image to HSV
+    hsv = cv2.cvtColor(
         img,
+        cv2.COLOR_BGR2HSV
+    )
+
+    # Green color range
+    lower_green = np.array(
+        [25, 30, 30]
+    )
+
+    upper_green = np.array(
+        [95, 255, 255]
+    )
+
+    green_mask = cv2.inRange(
+        hsv,
+        lower_green,
+        upper_green
+    )
+
+    green_ratio = (
+        np.count_nonzero(green_mask)
+        /
+        green_mask.size
+    )
+
+
+    # ========================================================
+    # MODEL INPUT
+    # ========================================================
+
+    model_img = cv2.resize(
+        rgb_img,
         (224, 224)
     ).astype("float32")
 
-    img = np.expand_dims(
-        img,
+    model_img = np.expand_dims(
+        model_img,
         axis=0
     )
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # MODEL PREDICTION
-    # --------------------------------------------------------
+    # ========================================================
 
     with st.spinner("Analyzing leaf..."):
 
         result = model.predict(
-            img,
+            model_img,
             verbose=0
         )[0]
 
 
     # --------------------------------------------------------
-    # GET PREDICTION
+    # SORT PREDICTIONS
     # --------------------------------------------------------
 
-    pred_idx = int(
-        np.argmax(result)
+    sorted_indices = np.argsort(
+        result
+    )[::-1]
+
+    top_index = int(
+        sorted_indices[0]
     )
 
-    predicted_class = disease_labels[pred_idx]
+    second_index = int(
+        sorted_indices[1]
+    )
 
-    pct = float(
-        np.max(result)
+
+    # --------------------------------------------------------
+    # TOP PREDICTION
+    # --------------------------------------------------------
+
+    predicted_class = disease_labels[
+        top_index
+    ]
+
+    top_confidence = float(
+        result[top_index]
     ) * 100
 
+    second_confidence = float(
+        result[second_index]
+    ) * 100
 
-    # --------------------------------------------------------
-    # HEALTH STATUS
-    # --------------------------------------------------------
-
-    is_healthy = (
-        "healthy" in predicted_class.lower()
-    )
-
-    status = (
-        "Healthy"
-        if is_healthy
-        else "Diseased"
-    )
-
-
-    # --------------------------------------------------------
-    # DISPLAY NAME
-    # --------------------------------------------------------
-
-    display_name = (
-        predicted_class
-        .replace("___", " ")
-        .replace("__", " ")
-        .replace("_", " ")
-    )
-
-
-    # --------------------------------------------------------
-    # DISEASE INFORMATION
-    # --------------------------------------------------------
-
-    info = disease_info.get(
-        predicted_class,
-        {
-            "severity": "Unknown",
-            "treatment": [
-                "Consult agricultural specialist"
-            ],
-            "improvements": [
-                "Monitor plant condition"
-            ]
-        }
+    prediction_margin = (
+        top_confidence
+        -
+        second_confidence
     )
 
 
     # ========================================================
-    # DIAGNOSIS
+    # PROTECTION SETTINGS
+    # ========================================================
+
+    # Minimum confidence required
+    MIN_CONFIDENCE = 70.0
+
+    # Minimum difference between first and second prediction
+    MIN_MARGIN = 10.0
+
+    # Minimum amount of green in image
+    MIN_GREEN_RATIO = 0.05
+
+
+    # ========================================================
+    # PROTECTION CHECKS
+    # ========================================================
+
+    confidence_ok = (
+        top_confidence >= MIN_CONFIDENCE
+    )
+
+    margin_ok = (
+        prediction_margin >= MIN_MARGIN
+    )
+
+    leaf_like = (
+        green_ratio >= MIN_GREEN_RATIO
+    )
+
+
+    # ========================================================
+    # UNKNOWN / NOT SUPPORTED DETECTION
+    # ========================================================
+
+    prediction_valid = (
+        confidence_ok
+        and
+        margin_ok
+        and
+        leaf_like
+    )
+
+
+    # ========================================================
+    # DISPLAY DIAGNOSIS
     # ========================================================
 
     st.markdown("## 🔍 Diagnosis")
 
-    if is_healthy:
-        st.success(
-            f"🌿 **Diagnosis Result: {display_name}**"
+
+    # --------------------------------------------------------
+    # UNKNOWN RESULT
+    # --------------------------------------------------------
+
+    if not prediction_valid:
+
+        st.markdown(
+            f"""
+            <div class="unknown-box">
+
+                <div class="unknown-title">
+                    ⚠️ Unknown / Not Supported
+                </div>
+
+                <div class="unknown-text">
+                    The image could not be confidently identified
+                    as one of the supported crop conditions.
+                    <br><br>
+                    Please upload a clear image of a
+                    <b>tomato, potato, or pepper leaf</b>
+                    from a supported condition.
+                </div>
+
+            </div>
+            """,
+            unsafe_allow_html=True
         )
+
+        # Show diagnostic information
+        with st.expander("Why was this image rejected?"):
+
+            st.write(
+                f"Model confidence: {top_confidence:.1f}%"
+            )
+
+            st.write(
+                f"Difference from second prediction: "
+                f"{prediction_margin:.1f}%"
+            )
+
+            st.write(
+                f"Green-area ratio: "
+                f"{green_ratio * 100:.1f}%"
+            )
+
+            if not confidence_ok:
+
+                st.write(
+                    "❌ Model confidence was too low."
+                )
+
+            if not margin_ok:
+
+                st.write(
+                    "❌ The model was not sufficiently "
+                    "certain between its top predictions."
+                )
+
+            if not leaf_like:
+
+                st.write(
+                    "❌ The image does not appear sufficiently "
+                    "leaf-like based on its color characteristics."
+                )
+
+
+        st.info(
+            "💡 Supported crops: Tomato, Potato, and Pepper."
+        )
+
+
+    # --------------------------------------------------------
+    # VALID RESULT
+    # --------------------------------------------------------
+
     else:
-        st.warning(
-            f"🦠 **Diagnosis Result: {display_name}**"
+
+        # ----------------------------------------------------
+        # DETERMINE HEALTH STATUS
+        # ----------------------------------------------------
+
+        is_healthy = (
+            "healthy"
+            in predicted_class.lower()
         )
 
-    # Status
-    st.write(
-        f"**Status:** {status}"
-    )
-
-    # Confidence
-    st.write(
-        f"**Confidence:** {pct:.1f}%"
-    )
-
-    # Severity
-    st.write(
-        f"**Severity:** {info['severity']}"
-    )
-
-    # Confidence progress bar
-    st.progress(
-        min(pct / 100, 1.0)
-    )
-
-
-    # ========================================================
-    # TREATMENT
-    # ========================================================
-
-    st.markdown("## 💊 Treatment Recommendations")
-
-    for treatment in info["treatment"]:
-
-        st.success(
-            treatment
+        status = (
+            "Healthy"
+            if is_healthy
+            else "Diseased"
         )
 
 
-    # ========================================================
-    # PLANT HEALTH IMPROVEMENT
-    # ========================================================
+        # ----------------------------------------------------
+        # DISPLAY NAME
+        # ----------------------------------------------------
 
-    st.markdown(
-        "## 🌱 Plant Health Improvement Plan"
-    )
+        display_name = (
+            predicted_class
+            .replace("___", " ")
+            .replace("__", " ")
+            .replace("_", " ")
+        )
 
-    col1, col2 = st.columns(2)
 
-    for i, tip in enumerate(
-        info["improvements"]
-    ):
+        # ----------------------------------------------------
+        # DISEASE INFORMATION
+        # ----------------------------------------------------
 
-        if i % 2 == 0:
+        info = disease_info.get(
+            predicted_class,
+            {
+                "severity": "Unknown",
+                "treatment": [
+                    "Consult agricultural specialist"
+                ],
+                "improvements": [
+                    "Monitor plant condition"
+                ]
+            }
+        )
 
-            with col1:
-                st.info(tip)
+
+        # ----------------------------------------------------
+        # RESULT COLORS
+        # ----------------------------------------------------
+
+        if is_healthy:
+
+            result_color = "#34D399"
 
         else:
 
-            with col2:
-                st.info(tip)
+            result_color = "#F0973B"
+
+
+        # ----------------------------------------------------
+        # DIAGNOSIS CARD
+        # ----------------------------------------------------
+
+        st.markdown(
+            f"""
+            <div class="diagnosis-box"
+                 style="border-top: 4px solid {result_color};">
+
+                <div class="diagnosis-title">
+                    Diagnosis Result
+                </div>
+
+                <div class="diagnosis-name"
+                     style="color: {result_color};">
+
+                    {display_name}
+
+                </div>
+
+                <div class="diagnosis-info">
+                    <b>Status:</b> {status}
+                </div>
+
+                <div class="diagnosis-info">
+                    <b>Confidence:</b> {top_confidence:.1f}%
+                </div>
+
+                <div class="diagnosis-info">
+                    <b>Severity:</b> {info['severity']}
+                </div>
+
+                <div class="confidence-bar">
+
+                    <div class="confidence-fill"
+                         style="
+                            width: {min(top_confidence, 100):.2f}%;
+                            background: {result_color};
+                         ">
+                    </div>
+
+                </div>
+
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        # ====================================================
+        # TREATMENT
+        # ====================================================
+
+        st.markdown(
+            "## 💊 Treatment Recommendations"
+        )
+
+        for treatment in info["treatment"]:
+
+            st.success(
+                treatment
+            )
+
+
+        # ====================================================
+        # PLANT HEALTH IMPROVEMENT
+        # ====================================================
+
+        st.markdown(
+            "## 🌱 Plant Health Improvement Plan"
+        )
+
+        col1, col2 = st.columns(2)
+
+        for i, tip in enumerate(
+            info["improvements"]
+        ):
+
+            if i % 2 == 0:
+
+                with col1:
+
+                    st.info(tip)
+
+            else:
+
+                with col2:
+
+                    st.info(tip)
