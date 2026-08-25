@@ -2,7 +2,7 @@ import os
 import shutil
 import random
 
-source_dir = "data/raw/plantvillage/PlantVillage"   # your original downloaded dataset
+source_dir = "data/raw/merged"
 train_dir = "data/processed/train"
 val_dir = "data/processed/val"
 split_ratio = 0.8  # 80% train, 20% val

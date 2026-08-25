@@ -2,12 +2,11 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 import numpy as np
 import cv2
+import os
 import tensorflow as tf
 
 app = FastAPI()
 
-# Allows a frontend hosted on a different domain (e.g. Netlify) to call this API.
-# "*" is fine for a student project — restrict to your actual frontend URL later if you want.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,28 +14,72 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-model = tf.keras.models.load_model("models/crop_disease_model.keras")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))          # .../FINAL YEAR PROJECT/app
+PROJECT_ROOT = os.path.dirname(BASE_DIR)                        # .../FINAL YEAR PROJECT
+MODEL_PATH = os.path.join(PROJECT_ROOT, "models", "crop_disease_model.keras")
 
-# Full class list is still needed internally so the model's prediction index
-# maps to the right label — it's just not shown to the user anymore.
-class_names = ['Pepper__bell___Bacterial_spot', 'Pepper__bell___healthy', 'Potato___Early_blight', 'Potato___Late_blight', 'Potato___healthy', 'Tomato_Bacterial_spot', 'Tomato_Early_blight', 'Tomato_Late_blight', 'Tomato_Leaf_Mold', 'Tomato_Septoria_leaf_spot', 'Tomato_Spider_mites_Two_spotted_spider_mite', 'Tomato__Target_Spot', 'Tomato__Tomato_YellowLeaf__Curl_Virus', 'Tomato__Tomato_mosaic_virus', 'Tomato_healthy']
+model = tf.keras.models.load_model(MODEL_PATH)
+
+disease_labels = [
+    'Pepper__bell___Bacterial_spot',
+    'Pepper__bell___healthy',
+    'Potato___Early_blight',
+    'Potato___Late_blight',
+    'Potato___healthy',
+    'Tomato_Bacterial_spot',
+    'Tomato_Early_blight',
+    'Tomato_Late_blight',
+    'Tomato_Leaf_Mold',
+    'Tomato_Septoria_leaf_spot',
+    'Tomato_Spider_mites_Two_spotted_spider_mite',
+    'Tomato__Target_Spot',
+    'Tomato__Tomato_YellowLeaf__Curl_Virus',
+    'Tomato__Tomato_mosaic_virus',
+    'Tomato_healthy'
+]
+
+MIN_CONFIDENCE = 70.0   # top prediction must be at least this confident
+MIN_MARGIN = 10.0       # top prediction must beat the runner-up by at least this much
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
     contents = await file.read()
     npimg = np.frombuffer(contents, np.uint8)
     img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
+
+    if img is None:
+        return {"status": "Error", "message": "Unable to read this image. Please upload a valid JPG or PNG."}
+
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = cv2.resize(img, (224, 224)).astype("float32")
-    img = np.expand_dims(img, axis=0)  # model expects a batch dimension
+    img = np.expand_dims(img, axis=0)
 
-    result = model.predict(img)[0]
-    pred_idx = int(np.argmax(result))
-    predicted_class = class_names[pred_idx]  # used internally to check health, not shown to the user
+    result = model.predict(img, verbose=0)[0]
 
+    sorted_indices = np.argsort(result)[::-1]
+    top_index = int(sorted_indices[0])
+    second_index = int(sorted_indices[1])
+
+    top_confidence = float(result[top_index]) * 100
+    second_confidence = float(result[second_index]) * 100
+    margin = top_confidence - second_confidence
+
+    confidence_ok = top_confidence >= MIN_CONFIDENCE
+    margin_ok = margin >= MIN_MARGIN
+
+    if not (confidence_ok and margin_ok):
+        return {
+            "status": "Unknown / Not Supported",
+            "confidence": round(top_confidence, 1),
+            "margin": round(margin, 1),
+            "message": "The model wasn't confident enough to give a reliable diagnosis for this image."
+        }
+
+    predicted_class = disease_labels[top_index]
     status = "Healthy" if "healthy" in predicted_class.lower() else "Diseased"
 
     return {
         "status": status,
-        "confidence": float(np.max(result))
+        "disease": predicted_class,
+        "confidence": round(top_confidence, 1)
     }
