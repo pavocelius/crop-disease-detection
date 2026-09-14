@@ -162,6 +162,35 @@ st.markdown("""
         height: auto;
     }
 }
+
+/* File uploader - high contrast */
+[data-testid="stFileUploader"] section {
+    background-color: #FFFFFF !important;
+    border: 2px dashed #3F7D3A !important;
+    border-radius: 14px !important;
+}
+
+[data-testid="stFileUploader"] button {
+    background-color: #3F7D3A !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+}
+
+[data-testid="stFileUploader"] button:hover {
+    background-color: #205C36 !important;
+    color: #FFFFFF !important;
+}
+
+[data-testid="stFileUploader"] small {
+    color: #365A3E !important;
+}
+
+[data-testid="stFileUploader"] label {
+    color: #17351F !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
