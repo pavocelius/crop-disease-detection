@@ -14,14 +14,16 @@ val_ds = tf.keras.utils.image_dataset_from_directory(
 class_names = train_ds.class_names
 print("Classes:", class_names)
 
-# Base model pretrained on ImageNet, frozen — same transfer learning approach as MobileNetV2
+# Base model pretrained on ImageNet, frozen.
+# EfficientNet has rescaling BUILT IN — expects raw 0-255 pixel values,
+# so no external Rescaling layer here (unlike MobileNetV2).
 base_model = EfficientNetB0(input_shape=IMG_SIZE + (3,), include_top=False, weights="imagenet")
 base_model.trainable = False
 
 model = models.Sequential([
-    layers.Rescaling(1./255),
     base_model,
     layers.GlobalAveragePooling2D(),
+    layers.BatchNormalization(),  # normalizes EfficientNet's pooled feature scale before the head — without this, the head's gradients are too small to learn anything
     layers.Dense(128, activation="relu"),
     layers.Dropout(0.3),
     layers.Dense(len(class_names), activation="softmax")
