@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 
 st.set_page_config(
-    page_title="Crop Disease Detection Using Leaf Images",
+    page_title="Crop Disease Detection System",
     page_icon="🌿",
     layout="centered",
     initial_sidebar_state="collapsed",
@@ -382,8 +382,8 @@ st.markdown("""
 # ---------- Header ----------
 st.markdown("""
 <div class="hero">
-    <div class="hero-badge">🌿 FYP PROJECT</div>
-    <h1>Crop Disease Detection Using Leaf Images</h1>
+    <div class="hero-badge">🌿 FINAL YEAR PROJECT</div>
+    <h1>Crop Disease Detection System</h1>
     <p>Upload a clear crop leaf image and let the trained model analyse the condition of your crop!</p>
 </div>
 """, unsafe_allow_html=True)
@@ -448,8 +448,15 @@ uploaded = st.file_uploader(
 if uploaded:
     image = Image.open(uploaded)
 
+    # Keep uploaded images visually compact on desktop while allowing them to
+    # scale naturally on smaller screens.
+    preview = image.copy()
+    preview.thumbnail((560, 560))
+
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.image(image, caption="Leaf image ready for analysis", use_container_width=True)
+    image_col_left, image_col, image_col_right = st.columns([1, 2, 1])
+    with image_col:
+        st.image(preview, caption="Leaf image ready for analysis", width=520)
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("<div style='height:.2rem'></div>", unsafe_allow_html=True)
@@ -471,24 +478,20 @@ if uploaded:
                 "action": "Use the prediction as a screening aid rather than a definitive diagnosis.",
             })
 
-            result_class = "result-healthy" if info["category"] == "Healthy" else "result"
+            # Use native Streamlit components for the prediction details.
+            # This avoids raw HTML tags appearing in the result on different
+            # Streamlit versions while keeping the visual design polished.
+            with st.container(border=True):
+                st.markdown("<div class='result-label'>🌿 PREDICTION RESULTS </div>", unsafe_allow_html=True)
+                st.markdown("<div class='small'>Predicted condition</div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='metric'>{info['title']}</div>", unsafe_allow_html=True)
 
-            st.markdown(f"""
-            <div class="card result {result_class}">
-                <div class="result-label">🌿 AI PREDICTION</div>
-                <div class="small">Predicted condition</div>
-                <div class="metric">{info["title"]}</div>
+                st.write(f"**Confidence:** {confidence:.2f}%")
+                st.progress(min(confidence / 100.0, 1.0), text=f"Model confidence: {confidence:.2f}%")
 
-                <p><b>Confidence:</b> {confidence:.2f}%</p>
-                <div class="confidence-track">
-                    <div class="confidence-fill" style="width:{min(confidence, 100):.1f}%"></div>
-                </div>
-
-                <p><b>Category:</b> {info["category"]}</p>
-                <p><b>Visible indicators:</b> {info["symptoms"]}</p>
-                <p><b>Suggested action:</b> {info["action"]}</p>
-            </div>
-            """, unsafe_allow_html=True)
+                st.write(f"**Category:** {info['category']}")
+                st.write(f"**Visible indicators:** {info['symptoms']}")
+                st.write(f"**Suggested action:** {info['action']}")
 
             if label == "Other":
                 st.warning(
@@ -498,7 +501,7 @@ if uploaded:
 
             st.markdown("""
             <div class="card">
-                <div class="section-title">💡 What to do next</div>
+                <div class="section-title">💡 What to do next...</div>
                 <div class="small">
                     Treat this prediction as a screening aid. Compare the result with the visible symptoms
                     and confirm important agricultural decisions with a qualified professional.
@@ -519,6 +522,6 @@ st.markdown("""
 </div>
 
 <div class="footer">
-    🌿 Crop Health AI &nbsp;•&nbsp; EfficientNet-B0 &nbsp;•&nbsp; Final Year Project
+    🌿 Final Year Project &nbsp;•&nbsp; EfficientNet-B0 &nbsp;•&nbsp; UniMAP
 </div>
 """, unsafe_allow_html=True)
