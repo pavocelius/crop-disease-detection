@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 
 st.set_page_config(
-    page_title="Crop Health AI",
+    page_title="Crop Disease Detection Using Leaf Images",
     page_icon="🌿",
     layout="centered",
     initial_sidebar_state="collapsed",
@@ -382,9 +382,9 @@ st.markdown("""
 # ---------- Header ----------
 st.markdown("""
 <div class="hero">
-    <div class="hero-badge">🌿 AI-ASSISTED CROP HEALTH</div>
-    <h1>Smart Crop Disease Detection</h1>
-    <p>Upload a clear crop leaf image and let the trained AI model analyse it for a supported disease or healthy condition.</p>
+    <div class="hero-badge">🌿 FYP PROJECT</div>
+    <h1>Crop Disease Detection Using Leaf Images</h1>
+    <p>Upload a clear crop leaf image and let the trained model analyse the condition of your crop!</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -404,7 +404,7 @@ with f2:
     st.markdown("""
     <div class="feature-card">
         <div class="feature-icon">🎯</div>
-        <div class="feature-title">AI Detection</div>
+        <div class="feature-title">Smart Detection</div>
         <div class="feature-text">EfficientNet-B0 image classification.</div>
     </div>
     """, unsafe_allow_html=True)
