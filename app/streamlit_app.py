@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 
 st.set_page_config(
-    page_title="Crop Disease Detection",
+    page_title="Crop Health AI",
     page_icon="🌿",
     layout="centered",
     initial_sidebar_state="collapsed",
@@ -80,134 +80,362 @@ def prepare_image(image):
     arr = np.asarray(image, dtype=np.float32)
     return np.expand_dims(arr, axis=0)
 
-# Light theme + plant colours + responsive layout.
+# Modern light plant theme + responsive mobile layout.
 st.markdown("""
 <style>
 :root {
     color-scheme: light;
 }
+
 .stApp {
-    background: #F7FBF5;
+    background:
+        radial-gradient(circle at 8% 4%, rgba(184,216,180,.28), transparent 25%),
+        radial-gradient(circle at 92% 12%, rgba(230,244,228,.55), transparent 24%),
+        #F7FBF5;
     color: #17351F;
 }
+
 [data-testid="stHeader"] {
-    background: rgba(247,251,245,0.96);
+    background: rgba(247,251,245,0.90);
 }
+
 .block-container {
     max-width: 1050px;
-    padding-top: 1.4rem;
+    padding-top: 1rem;
+    padding-bottom: 2rem;
     padding-left: 1rem;
     padding-right: 1rem;
 }
+
+/* ---------- Hero ---------- */
 .hero {
-    background: linear-gradient(135deg, #E6F4E4, #F8FBEF);
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #DCEFD9 0%, #F8FBEF 58%, #FFFFFF 100%);
     border: 1px solid #B8D8B4;
-    border-radius: 20px;
-    padding: 1.3rem 1.2rem;
+    border-radius: 24px;
+    padding: 2rem 1.6rem 1.7rem;
     margin-bottom: 1rem;
+    box-shadow: 0 8px 28px rgba(32,92,54,.10);
 }
+
+.hero::after {
+    content: "🌱";
+    position: absolute;
+    right: 2rem;
+    top: .7rem;
+    font-size: 5rem;
+    opacity: .15;
+    transform: rotate(-12deg);
+}
+
+.hero-badge {
+    display: inline-block;
+    background: #FFFFFF;
+    color: #3F7D3A;
+    border: 1px solid #B8D8B4;
+    border-radius: 999px;
+    padding: .35rem .7rem;
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    margin-bottom: .7rem;
+}
+
 .hero h1 {
     color: #205C36;
-    margin-bottom: .25rem;
-    font-size: clamp(1.7rem, 5vw, 2.7rem);
+    margin: 0 0 .35rem 0;
+    font-size: clamp(2rem, 6vw, 3rem);
+    line-height: 1.1;
 }
+
 .hero p {
     color: #365A3E;
     margin: 0;
+    max-width: 650px;
+    font-size: 1rem;
+    line-height: 1.6;
 }
+
+/* ---------- Cards ---------- */
 .card {
-    background: #FFFFFF;
+    background: rgba(255,255,255,.96);
     border: 1px solid #C9DDC6;
-    border-radius: 16px;
-    padding: 1rem;
-    margin: .75rem 0;
-    box-shadow: 0 3px 12px rgba(32,92,54,.08);
+    border-radius: 18px;
+    padding: 1.1rem;
+    margin: .8rem 0;
+    box-shadow: 0 5px 18px rgba(32,92,54,.07);
 }
-.result {
-    background: #F0F8ED;
-    border-left: 6px solid #3F7D3A;
-}
-.metric {
-    font-size: 1.55rem;
-    font-weight: 700;
+
+.section-title {
     color: #205C36;
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin-bottom: .25rem;
 }
+
 .small {
     color: #52705A;
-    font-size: .92rem;
+    font-size: .9rem;
+    line-height: 1.55;
 }
-.stButton > button, .stDownloadButton > button {
+
+/* ---------- Feature cards ---------- */
+.feature-card {
+    background: #FFFFFF;
+    border: 1px solid #D2E3CF;
+    border-radius: 16px;
+    padding: .9rem;
+    min-height: 100%;
+    box-shadow: 0 3px 12px rgba(32,92,54,.05);
+}
+
+.feature-icon {
+    font-size: 1.45rem;
+    margin-bottom: .25rem;
+}
+
+.feature-title {
+    color: #205C36;
+    font-weight: 800;
+    font-size: .96rem;
+}
+
+.feature-text {
+    color: #52705A;
+    font-size: .82rem;
+    margin-top: .2rem;
+    line-height: 1.4;
+}
+
+/* ---------- Upload area ---------- */
+.upload-card {
+    background: linear-gradient(180deg, #FFFFFF, #F8FCF6);
+    border: 2px solid #B8D8B4;
+    border-radius: 20px;
+    padding: 1rem;
+    margin-top: 1rem;
+    box-shadow: 0 6px 20px rgba(32,92,54,.08);
+}
+
+.upload-heading {
+    color: #205C36;
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: .2rem;
+}
+
+/* Streamlit uploader - high contrast and visible on light theme */
+[data-testid="stFileUploader"] {
     width: 100%;
-    border-radius: 12px;
-    min-height: 2.8rem;
-    font-weight: 700;
-}
-@media (max-width: 640px) {
-    .block-container {
-        padding: .75rem .65rem 1.5rem;
-    }
-    .hero {
-        padding: 1rem;
-        border-radius: 16px;
-    }
-    .card {
-        padding: .85rem;
-        border-radius: 14px;
-    }
-    [data-testid="stFileUploader"] {
-        width: 100%;
-    }
-    img {
-        max-width: 100%;
-        height: auto;
-    }
 }
 
-/* File uploader - high contrast */
-[data-testid="stFileUploader"] section {
-    background-color: #FFFFFF !important;
+[data-testid="stFileUploaderDropzone"] {
+    background: #FFFFFF !important;
     border: 2px dashed #3F7D3A !important;
-    border-radius: 14px !important;
+    border-radius: 15px !important;
+    min-height: 145px !important;
 }
 
+[data-testid="stFileUploaderDropzone"] > div {
+    color: #17351F !important;
+}
+
+[data-testid="stFileUploaderDropzone"] button,
 [data-testid="stFileUploader"] button {
-    background-color: #3F7D3A !important;
+    background: #3F7D3A !important;
     color: #FFFFFF !important;
-    border: none !important;
+    border: 1px solid #3F7D3A !important;
     border-radius: 10px !important;
-    font-weight: 700 !important;
+    font-weight: 800 !important;
+    box-shadow: none !important;
 }
 
+[data-testid="stFileUploaderDropzone"] button:hover,
 [data-testid="stFileUploader"] button:hover {
-    background-color: #205C36 !important;
+    background: #205C36 !important;
+    color: #FFFFFF !important;
+    border-color: #205C36 !important;
+}
+
+[data-testid="stFileUploaderDropzone"] button p,
+[data-testid="stFileUploaderDropzone"] button span,
+[data-testid="stFileUploader"] button p,
+[data-testid="stFileUploader"] button span {
     color: #FFFFFF !important;
 }
 
-[data-testid="stFileUploader"] small {
-    color: #365A3E !important;
+[data-testid="stFileUploader"] small,
+[data-testid="stFileUploaderDropzone"] small {
+    color: #52705A !important;
 }
 
 [data-testid="stFileUploader"] label {
     color: #17351F !important;
+    font-weight: 700 !important;
 }
 
+/* ---------- Buttons ---------- */
+.stButton > button {
+    width: 100%;
+    min-height: 3rem;
+    border-radius: 12px;
+    font-weight: 800;
+    border: 1px solid #3F7D3A;
+}
+
+/* ---------- Prediction result ---------- */
+.result {
+    background: linear-gradient(135deg, #F0F8ED, #FFFFFF);
+    border: 1px solid #B8D8B4;
+    border-left: 6px solid #3F7D3A;
+}
+
+.result-healthy {
+    border-left-color: #3F7D3A;
+}
+
+.result-warning {
+    border-left-color: #D08B28;
+}
+
+.result-label {
+    display: inline-block;
+    background: #E6F4E4;
+    color: #205C36;
+    border-radius: 999px;
+    padding: .3rem .65rem;
+    font-size: .75rem;
+    font-weight: 800;
+    margin-bottom: .45rem;
+}
+
+.metric {
+    font-size: clamp(1.35rem, 4vw, 1.8rem);
+    font-weight: 800;
+    color: #205C36;
+    line-height: 1.2;
+}
+
+.confidence-track {
+    width: 100%;
+    height: 10px;
+    background: #DCE8D9;
+    border-radius: 999px;
+    overflow: hidden;
+    margin: .45rem 0 .7rem;
+}
+
+.confidence-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #72A968, #3F7D3A);
+    border-radius: 999px;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+    text-align: center;
+    color: #6B816F;
+    font-size: .78rem;
+    padding: 1rem .5rem .25rem;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 640px) {
+    .block-container {
+        padding: .65rem .55rem 1.2rem;
+    }
+
+    .hero {
+        padding: 1.25rem 1rem 1.2rem;
+        border-radius: 18px;
+    }
+
+    .hero::after {
+        right: .5rem;
+        top: .35rem;
+        font-size: 3.5rem;
+    }
+
+    .hero p {
+        font-size: .92rem;
+        max-width: 85%;
+    }
+
+    .card,
+    .upload-card {
+        padding: .85rem;
+        border-radius: 15px;
+    }
+
+    [data-testid="stFileUploaderDropzone"] {
+        min-height: 130px !important;
+    }
+
+    .metric {
+        font-size: 1.35rem;
+    }
+}
 </style>
 """, unsafe_allow_html=True)
 
+# ---------- Header ----------
 st.markdown("""
 <div class="hero">
-    <h1>🌿 Crop Disease Detection</h1>
-    <p>Upload a crop leaf image to obtain an AI-assisted classification result.</p>
+    <div class="hero-badge">🌿 AI-ASSISTED CROP HEALTH</div>
+    <h1>Smart Crop Disease Detection</h1>
+    <p>Upload a clear crop leaf image and let the trained AI model analyse it for a supported disease or healthy condition.</p>
 </div>
 """, unsafe_allow_html=True)
 
+# ---------- Feature row ----------
+f1, f2, f3 = st.columns(3)
+
+with f1:
+    st.markdown("""
+    <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">Fast Analysis</div>
+        <div class="feature-text">Get a prediction in seconds.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with f2:
+    st.markdown("""
+    <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <div class="feature-title">AI Detection</div>
+        <div class="feature-text">EfficientNet-B0 image classification.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with f3:
+    st.markdown("""
+    <div class="feature-card">
+        <div class="feature-icon">🌱</div>
+        <div class="feature-title">16 Classes</div>
+        <div class="feature-text">Supported crop health conditions.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ---------- How to use ----------
 st.markdown("""
 <div class="card">
-<b>How to use</b><br>
-1. Take a clear photograph of one leaf.<br>
-2. Upload the image below.<br>
-3. Check the preview and run the prediction.<br>
-4. Read the result, confidence and suggested action.
+    <div class="section-title">How it works</div>
+    <div class="small">
+        <b>01</b> Take a clear photo of one leaf &nbsp;→&nbsp;
+        <b>02</b> Upload it &nbsp;→&nbsp;
+        <b>03</b> Analyse the image &nbsp;→&nbsp;
+        <b>04</b> Review the prediction and suggested action.
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# ---------- Upload ----------
+st.markdown("""
+<div class="upload-card">
+    <div class="upload-heading">📷 Upload a Leaf Image</div>
+    <div class="small">Use JPG or PNG. For best results, use one clear leaf with good lighting and minimal background clutter.</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -219,11 +447,16 @@ uploaded = st.file_uploader(
 
 if uploaded:
     image = Image.open(uploaded)
-    st.image(image, caption="Uploaded leaf image", use_container_width=True)
 
-    if st.button("🔍 Analyse Leaf", type="primary"):
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.image(image, caption="Leaf image ready for analysis", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown("<div style='height:.2rem'></div>", unsafe_allow_html=True)
+
+    if st.button("🔍  Analyse Leaf", type="primary"):
         try:
-            with st.spinner("Analysing image..."):
+            with st.spinner("🌿 Analysing your leaf..."):
                 model = load_model()
                 x = prepare_image(image)
                 probs = model.predict(x, verbose=0)[0]
@@ -238,11 +471,19 @@ if uploaded:
                 "action": "Use the prediction as a screening aid rather than a definitive diagnosis.",
             })
 
+            result_class = "result-healthy" if info["category"] == "Healthy" else "result"
+
             st.markdown(f"""
-            <div class="card result">
+            <div class="card result {result_class}">
+                <div class="result-label">🌿 AI PREDICTION</div>
                 <div class="small">Predicted condition</div>
                 <div class="metric">{info["title"]}</div>
+
                 <p><b>Confidence:</b> {confidence:.2f}%</p>
+                <div class="confidence-track">
+                    <div class="confidence-fill" style="width:{min(confidence, 100):.1f}%"></div>
+                </div>
+
                 <p><b>Category:</b> {info["category"]}</p>
                 <p><b>Visible indicators:</b> {info["symptoms"]}</p>
                 <p><b>Suggested action:</b> {info["action"]}</p>
@@ -255,14 +496,29 @@ if uploaded:
                     "The system should not be used to diagnose crops outside its trained classes."
                 )
 
+            st.markdown("""
+            <div class="card">
+                <div class="section-title">💡 What to do next</div>
+                <div class="small">
+                    Treat this prediction as a screening aid. Compare the result with the visible symptoms
+                    and confirm important agricultural decisions with a qualified professional.
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
         except Exception as e:
             st.error("The image could not be analysed. Check that the model file and class list are correct.")
             st.caption(str(e))
 
+# ---------- Disclaimer + footer ----------
 st.markdown("""
 <div class="card small">
-<b>Important:</b> This application is a machine-learning decision-support prototype. "
-"Predictions can be affected by image quality, lighting, background, crop variety and diseases not represented "
-"in the training data. Confirm important agricultural decisions with a qualified professional.
+    <b>Important:</b> This application is a machine-learning decision-support prototype.
+    Predictions can be affected by image quality, lighting, background, crop variety and diseases not represented
+    in the training data. Confirm important agricultural decisions with a qualified professional.
+</div>
+
+<div class="footer">
+    🌿 Crop Health AI &nbsp;•&nbsp; EfficientNet-B0 &nbsp;•&nbsp; Final Year Project
 </div>
 """, unsafe_allow_html=True)
